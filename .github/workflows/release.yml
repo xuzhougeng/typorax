@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macos-arm64
+            platform: macos-latest
+            rust-target: aarch64-apple-darwin
+            args: --target aarch64-apple-darwin --bundles app,dmg
+          - name: macos-x64
+            platform: macos-latest
+            rust-target: x86_64-apple-darwin
+            args: --target x86_64-apple-darwin --bundles app,dmg
+          - name: windows-x64
+            platform: windows-latest
+            rust-target: x86_64-pc-windows-msvc
+            args: --target x86_64-pc-windows-msvc --bundles nsis,msi
+
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_version="$(node -p "require('./package.json').version")"
+          major_version="${package_version%%.*}"
+          tag_name="${GITHUB_REF_NAME}"
+
+          if [[ "${tag_name}" == "v${package_version}" ]]; then
+            echo "Validated tag ${tag_name} against package.json version ${package_version}"
+            exit 0
+          fi
+
+          if [[ "${major_version}" -ge 1 && "${tag_name}" == "v${major_version}" ]]; then
+            echo "Validated major alias ${tag_name} for package.json version ${package_version}"
+            exit 0
+          fi
+
+          echo "Tag ${tag_name} does not match package.json version ${package_version}."
+          echo "Allowed full tag: v${package_version}"
+
+          if [[ "${major_version}" -ge 1 ]]; then
+            echo "Allowed major alias: v${major_version}"
+          fi
+
+          exit 1
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build and upload release assets
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: .
+          tagName: ${{ github.ref_name }}
+          releaseName: Typorax ${{ github.ref_name }}
+          releaseDraft: false
+          prerelease: false
+          generateReleaseNotes: true
+          uploadWorkflowArtifacts: true
+          updaterJsonPreferNsis: true
+          args: ${{ matrix.args }}
+
