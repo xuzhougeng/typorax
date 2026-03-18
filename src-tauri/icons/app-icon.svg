@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#18252E"/>
+      <stop offset="1" stop-color="#8D5A2B"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="120" y1="104" x2="396" y2="396" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF6E9" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#EFD7B8" stop-opacity="0.72"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="44" y="44" width="424" height="424" rx="124" fill="url(#bg)"/>
+  <rect x="74" y="74" width="364" height="364" rx="102" fill="url(#glow)" fill-opacity="0.12"/>
+
+  <path
+    d="M149 150H363V194H281V364H231V194H149V150Z"
+    fill="#FBF6EF"
+  />
+  <path
+    d="M166 270C166 247.909 183.909 230 206 230H306C328.091 230 346 247.909 346 270V284C346 306.091 328.091 324 306 324H206C183.909 324 166 306.091 166 284V270Z"
+    fill="#DDB98B"
+    fill-opacity="0.34"
+  />
+  <path
+    d="M199 258H313V296H199V258Z"
+    fill="#FBF6EF"
+    fill-opacity="0.92"
+  />
+</svg>
