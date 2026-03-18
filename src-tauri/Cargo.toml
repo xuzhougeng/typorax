@@ -10,11 +10,10 @@ name = "typorax_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0" }
+tauri-build = { version = "2.0.0", features = [] }
 
 [dependencies]
 rfd = "0.15.4"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "2.0.0" }
+tauri = { version = "2.0.0", features = [] }
 thiserror = "2.0.12"
-
