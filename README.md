@@ -71,5 +71,5 @@ npm run tauri:dev
 - workflow 会校验 tag 和 `package.json` 里的版本关系：
   - 允许完整版本 tag，例如 `package.json` 是 `0.1.0` 时使用 `v0.1.0`
   - 从主版本 `1` 开始，也允许主版本别名 tag，例如 `1.2.3` 对应 `v1`
-- macOS 会产出 `app` / `dmg`
+- macOS 只构建 Apple Silicon (`aarch64-apple-darwin`)，产出 `app` / `dmg`
 - Windows 会产出 `nsis` / `msi` 安装包
