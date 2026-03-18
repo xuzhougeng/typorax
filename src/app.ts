@@ -5,10 +5,10 @@ import { createDefaultMarkdownEngine } from "./markdown/engine";
 import { loadSettings, saveSettings } from "./services/settings";
 import type {
   DocumentSession,
-  EditorLayout,
   EditorSettings,
   OpenDocumentResult,
-  SaveDocumentResult
+  SaveDocumentResult,
+  ViewMode
 } from "./types";
 
 const starterDocument = `# Typorax
@@ -62,6 +62,9 @@ export class TyporaxApp {
   constructor(root: HTMLElement) {
     this.root = root;
     this.settings = loadSettings();
+    if (!this.settings.viewMode) {
+      (this.settings as { viewMode?: ViewMode }).viewMode = "edit";
+    }
     this.session = this.createEmptySession();
 
     this.root.innerHTML = this.renderShell();
@@ -99,12 +102,15 @@ export class TyporaxApp {
     this.cssInputEl.value = this.settings.customCss;
 
     this.bindEvents();
-    this.applyLayout(this.settings.layout);
+    this.applyViewMode(this.settings.viewMode);
+    this.applyLabOpen(this.settings.labOpen);
     this.refreshHeader();
     this.refreshStatus();
     this.refreshSyntaxSummary();
     this.renderPreview();
-    this.editor.focus();
+    if (this.settings.viewMode === "source") {
+      this.editor.focus();
+    }
   }
 
   private bindEvents(): void {
@@ -130,10 +136,17 @@ export class TyporaxApp {
       });
     });
 
-    this.root.querySelectorAll<HTMLElement>("[data-layout-value]").forEach((button) => {
+    this.root.querySelectorAll<HTMLElement>("[data-view-mode-value]").forEach((button) => {
       button.addEventListener("click", () => {
-        const layout = button.dataset.layoutValue as EditorLayout;
-        this.applyLayout(layout);
+        const viewMode = button.dataset.viewModeValue as ViewMode;
+        this.applyViewMode(viewMode);
+      });
+    });
+
+    this.root.querySelectorAll<HTMLElement>("[data-action='toggle-lab']").forEach((el) => {
+      el.addEventListener("click", () => {
+        this.settings.labOpen = !this.settings.labOpen;
+        this.applyLabOpen(this.settings.labOpen);
       });
     });
 
@@ -145,12 +158,20 @@ export class TyporaxApp {
 
     window.addEventListener("keydown", (event) => {
       const mod = this.isMacLike() ? event.metaKey : event.ctrlKey;
+      const key = event.key.toLowerCase();
+
+      if (key === "\\" && mod) {
+        event.preventDefault();
+        this.applyViewMode(this.settings.viewMode === "edit" ? "source" : "edit");
+        if (this.settings.viewMode === "source") {
+          this.editor.focus();
+        }
+        return;
+      }
 
       if (!mod) {
         return;
       }
-
-      const key = event.key.toLowerCase();
 
       if (key === "o") {
         event.preventDefault();
@@ -180,7 +201,7 @@ export class TyporaxApp {
 
   private renderShell(): string {
     return `
-      <div class="shell" data-slot="shell" data-layout="split">
+      <div class="shell" data-slot="shell" data-view-mode="edit" data-lab-open="true">
         <header class="toolbar">
           <div class="brand">
             <div class="brand-mark">T</div>
@@ -196,6 +217,10 @@ export class TyporaxApp {
           </div>
 
           <div class="toolbar-actions">
+            <div class="view-mode-toggle" title="切换：Ctrl+\\ (Mac: Cmd+\\)">
+              <button class="layout-button" data-view-mode-value="edit">所见即所得</button>
+              <button class="layout-button" data-view-mode-value="source">源代码</button>
+            </div>
             <button class="toolbar-button" data-action="new">New</button>
             <button class="toolbar-button" data-action="open">Open</button>
             <button class="toolbar-button toolbar-button-accent" data-action="save">Save</button>
@@ -206,26 +231,28 @@ export class TyporaxApp {
         <main class="workspace">
           <section class="pane editor-pane">
             <div class="pane-header">
-              <span>Source</span>
-              <span class="pane-kicker">CodeMirror 6</span>
+              <span>源代码</span>
+              <span class="pane-kicker">Markdown 原文，可编辑 · Ctrl+\\ 切回所见即所得</span>
             </div>
             <div class="editor-host" data-slot="editor"></div>
           </section>
 
           <section class="pane preview-pane">
             <div class="pane-header">
-              <span>Preview</span>
-              <span class="pane-kicker">remark / rehype</span>
+              <span>所见即所得</span>
+              <span class="pane-kicker">渲染效果 · Ctrl+\\ 切到源代码</span>
             </div>
             <style data-slot="preview-styles"></style>
             <article class="markdown-preview" data-slot="preview"></article>
           </section>
 
           <aside class="pane lab-pane">
-            <div class="pane-header">
-              <span>Render Lab</span>
+            <div class="pane-header lab-header">
+              <span class="lab-title">Render Lab</span>
               <span class="pane-kicker">CSS + Syntax</span>
+              <button type="button" class="lab-toggle" data-action="toggle-lab" title="收起/展开" aria-label="收起 Render Lab">◀</button>
             </div>
+            <button type="button" class="lab-tab" data-action="toggle-lab" title="展开 Render Lab" aria-label="展开 Render Lab">Lab</button>
 
             <div class="lab-body">
               <label class="field-label" for="custom-css">Custom CSS</label>
@@ -242,15 +269,6 @@ export class TyporaxApp {
 Custom syntax block.
 :::</code></pre>
                 <p class="syntax-card-copy" data-slot="syntax"></p>
-              </div>
-
-              <div class="layout-card">
-                <div class="field-label">Layout</div>
-                <div class="layout-toggle">
-                  <button class="layout-button" data-layout-value="editor">Editor</button>
-                  <button class="layout-button" data-layout-value="split">Split</button>
-                  <button class="layout-button" data-layout-value="preview">Preview</button>
-                </div>
               </div>
             </div>
           </aside>
@@ -315,14 +333,29 @@ Custom syntax block.
       html.length > 0 ? html : '<p class="empty-state">Nothing to preview yet.</p>';
   }
 
-  private applyLayout(layout: EditorLayout): void {
-    this.settings.layout = layout;
+  private applyViewMode(viewMode: ViewMode): void {
+    this.settings.viewMode = viewMode;
     saveSettings(this.settings);
 
-    this.shell.dataset.layout = layout;
-    this.root.querySelectorAll<HTMLElement>("[data-layout-value]").forEach((button) => {
-      button.classList.toggle("is-active", button.dataset.layoutValue === layout);
+    this.shell.dataset.viewMode = viewMode;
+    this.root.querySelectorAll<HTMLElement>("[data-view-mode-value]").forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.viewModeValue === viewMode);
     });
+
+    if (viewMode === "source") {
+      this.editor.focus();
+    }
+  }
+
+  private applyLabOpen(open: boolean): void {
+    this.settings.labOpen = open;
+    saveSettings(this.settings);
+    this.shell.dataset.labOpen = String(open);
+    const toggleBtn = this.root.querySelector<HTMLElement>(".lab-toggle");
+    if (toggleBtn) {
+      toggleBtn.textContent = open ? "◀" : "▶";
+      toggleBtn.title = open ? "收起" : "展开";
+    }
   }
 
   private async newDocument(): Promise<void> {

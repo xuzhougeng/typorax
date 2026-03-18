@@ -131,10 +131,17 @@ button {
 }
 
 .toolbar-actions,
+.view-mode-toggle,
 .layout-toggle {
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+}
+
+.view-mode-toggle .layout-button.is-active {
+  border-color: rgba(111, 68, 29, 0.24);
+  background: rgba(141, 90, 43, 0.14);
+  color: var(--accent-strong);
 }
 
 .toolbar-button,
@@ -175,7 +182,8 @@ button {
   display: grid;
   min-height: 0;
   gap: 1rem;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  transition: grid-template-columns 0.2s ease;
 }
 
 .pane {
@@ -219,6 +227,69 @@ button {
   min-height: 100%;
 }
 
+.lab-pane {
+  position: relative;
+}
+
+.lab-toggle {
+  margin-left: auto;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.lab-toggle:hover {
+  color: var(--accent);
+  background: rgba(141, 90, 43, 0.1);
+}
+
+.lab-tab {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--shell-border);
+  border-radius: 1.35rem;
+  background: var(--panel-bg);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shell-shadow);
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.lab-tab:hover {
+  color: var(--accent);
+  background: rgba(251, 246, 239, 0.95);
+}
+
+.shell[data-lab-open="false"] .workspace {
+  grid-template-columns: minmax(0, 1fr) 44px;
+}
+
+.shell[data-lab-open="false"] .lab-pane .lab-header,
+.shell[data-lab-open="false"] .lab-pane .lab-body {
+  display: none;
+}
+
+.shell[data-lab-open="false"] .lab-pane .lab-tab {
+  display: flex;
+}
+
 .lab-body {
   display: flex;
   min-height: 0;
@@ -251,8 +322,7 @@ button {
   line-height: 1.6;
 }
 
-.syntax-card,
-.layout-card {
+.syntax-card {
   padding: 0.95rem 1rem;
   border: 1px solid rgba(20, 33, 43, 0.08);
   border-radius: 1rem;
@@ -318,35 +388,23 @@ button {
   transform: translateY(0);
 }
 
-.shell[data-layout="editor"] .preview-pane,
-.shell[data-layout="editor"] .lab-pane {
+/* 所见即所得：主区只显示渲染结果 */
+.shell[data-view-mode="edit"] .editor-pane {
   display: none;
 }
 
-.shell[data-layout="editor"] .workspace {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.shell[data-layout="preview"] .editor-pane {
+/* 源代码：主区只显示 Markdown 原文 */
+.shell[data-view-mode="source"] .preview-pane {
   display: none;
-}
-
-.shell[data-layout="preview"] .workspace {
-  grid-template-columns: minmax(0, 1fr) 320px;
 }
 
 @media (max-width: 1200px) {
-  .workspace,
-  .shell[data-layout="preview"] .workspace {
+  .workspace {
     grid-template-columns: 1fr;
   }
 
   .lab-pane {
     min-height: 420px;
-  }
-
-  .shell[data-layout="preview"] .editor-pane {
-    display: none;
   }
 }
 

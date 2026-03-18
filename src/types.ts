@@ -1,7 +1,8 @@
 import type { Extension } from "@codemirror/state";
 import type { Processor } from "unified";
 
-export type EditorLayout = "split" | "editor" | "preview";
+/** 所见即所得：主区仅显示渲染结果；源代码：主区仅显示 Markdown 原文，可编辑 */
+export type ViewMode = "edit" | "source";
 
 export interface DocumentSession {
   path: string | null;
@@ -23,7 +24,8 @@ export interface SaveDocumentResult {
 }
 
 export interface EditorSettings {
-  layout: EditorLayout;
+  viewMode: ViewMode;
+  labOpen: boolean;
   customCss: string;
 }
 

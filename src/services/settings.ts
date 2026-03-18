@@ -1,9 +1,10 @@
 import type { EditorSettings } from "../types";
 
-const STORAGE_KEY = "typorax.settings.v1";
+const STORAGE_KEY = "typorax.settings.v3";
 
 const defaultSettings: EditorSettings = {
-  layout: "split",
+  viewMode: "edit",
+  labOpen: true,
   customCss: [
     "/* Write selectors against .markdown-preview */",
     ".markdown-preview .callout-warning {",
