@@ -1,7 +1,7 @@
 {
   "name": "typorax",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite --port 1420",
@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "env -u CI tauri build"
+    "tauri:build": "node ./scripts/tauri-build.mjs"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.3.3",

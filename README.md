@@ -61,6 +61,14 @@ npm run tauri:dev
 
 如果在 Linux 上本地调试 Tauri，需要先安装 `webkit2gtk` / `javascriptcoregtk` / `libsoup-3.0` 等系统依赖；macOS 和 Windows 则按各自 Tauri 工具链准备即可。
 
+本地打包可以直接运行：
+
+```bash
+npm run tauri:build
+```
+
+`tauri:build` 现在通过仓库内的 Node 包装脚本调用 Tauri CLI，在 macOS / Linux / Windows 上都会先从子进程环境里移除 `CI`，避免继续依赖 `env -u` 这类 Unix-only 命令。
+
 ## GitHub 发版
 
 - workflow 文件在 `.github/workflows/release.yml`

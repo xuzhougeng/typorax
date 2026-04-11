@@ -1,6 +1,6 @@
 [package]
 name = "typorax"
-version = "0.1.0"
+version = "0.1.1"
 description = "Typorax desktop shell"
 authors = ["xzg"]
 edition = "2021"
